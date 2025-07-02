@@ -449,6 +449,36 @@ class VehicleInfo(object):
                                             "default_params/motorboat.parm",
                                             "default_params/rover-skid.parm"],
             },
+            "motorboat-skid1": {
+                "waf_target": "bin/ardurover",
+                "default_params_filename": ["default_params/rover.parm",
+                                            "default_params/motorboat.parm",
+                                            "default_params/rover-skid1.parm"],
+            },
+            "motorboat-skid2": {
+                "waf_target": "bin/ardurover",
+                "default_params_filename": ["default_params/rover.parm",
+                                            "default_params/motorboat.parm",
+                                            "default_params/rover-skid2.parm"],
+            },
+            "motorboat-skid3": {
+                "waf_target": "bin/ardurover",
+                "default_params_filename": ["default_params/rover.parm",
+                                            "default_params/motorboat.parm",
+                                            "default_params/rover-skid3.parm"],
+            },
+            "motorboat-skid4": {
+                "waf_target": "bin/ardurover",
+                "default_params_filename": ["default_params/rover.parm",
+                                            "default_params/motorboat.parm",
+                                            "default_params/rover-skid4.parm"],
+            },
+            "motorboat-skid5": {
+                "waf_target": "bin/ardurover",
+                "default_params_filename": ["default_params/rover.parm",
+                                            "default_params/motorboat.parm",
+                                            "default_params/rover-skid5.parm"],
+            },
             "sailboat": {
                 "waf_target": "bin/ardurover",
                 "default_params_filename": ["default_params/rover.parm",
