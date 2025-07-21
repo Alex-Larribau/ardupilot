@@ -5625,9 +5625,9 @@ class AutoTestPlane(vehicle_test_suite.TestSuite):
         self.reboot_sitl()
         self.wait_text("Loaded UniversalAutoLand.lua", check_context=True)
         self.set_parameters({
-             "AUTOLAND_ENABLE" : 1,
-             "AUTOLAND_WP_ALT" : 55,
-             "AUTOLAND_WP_DIST" : 400
+             "ALAND_ENABLE" : 1,
+             "ALAND_WP_ALT" : 55,
+             "ALAND_WP_DIST" : 400
             })
         self.wait_ready_to_arm()
         self.scripting_restart()
@@ -6737,6 +6737,9 @@ class AutoTestPlane(vehicle_test_suite.TestSuite):
         self.wait_ready_to_arm()
         self.takeoff(30, mode='TAKEOFF')
         self.assert_parameter_value("COMPASS_OFS_X", 20, epsilon=30)
+        # fly straight and level for a bit to let GSF converge for accurate learning
+        self.change_mode("FBWB") # not "CRUISE" to avoid heading track with bad compass
+        self.wait_distance(200, accuracy=20)
         old_compass_ofs_x = self.get_parameter('COMPASS_OFS_X')
         self.set_parameters({
             "COMPASS_OFS_X": 1100,
@@ -6866,6 +6869,17 @@ class AutoTestPlane(vehicle_test_suite.TestSuite):
         self.wait_altitude(450, 475, relative=True, timeout=600)
         self.wait_altitude(75, 125, relative=True, timeout=600)
         self.wait_current_waypoint(4)
+        self.fly_home_land_and_disarm()
+
+    def RudderArmedTakeoffRequiresNeutralThrottle(self):
+        '''auto-takeoff should not occur while rudder continues to be held over'''
+        self.change_mode('TAKEOFF')
+        self.wait_ready_to_arm()
+        self.set_rc(4, 1000)
+        self.wait_armed()
+        self.wait_groundspeed(0, 1, minimum_duration=10)
+        self.set_rc(4, 1500)
+        self.wait_groundspeed(5, 100)
         self.fly_home_land_and_disarm()
 
     def VolzMission(self):
@@ -7119,6 +7133,23 @@ class AutoTestPlane(vehicle_test_suite.TestSuite):
         })
         self.set_parameter("SIM_ARSPD_FAIL", 0)
         self.fly_home_land_and_disarm()
+
+    def RudderArmingWithArmingChecksZero(self):
+        '''check we can't arm with rudder even if checks are disabled'''
+        self.set_parameters({
+            "ARMING_RUDDER": 0,
+            "ARMING_CHECK": 0,
+            "RC4_REVERSED": 0,
+        })
+        self.reboot_sitl()
+        self.delay_sim_time(5)
+        self.set_rc(4, 2000)
+        w = vehicle_test_suite.WaitAndMaintainDisarmed(
+            self,
+            minimum_duration=30,
+            timeout=60,
+        )
+        w.run()
 
     def Volz(self):
         '''test Volz serially-connected'''
@@ -7432,6 +7463,7 @@ class AutoTestPlane(vehicle_test_suite.TestSuite):
             Test(self.GCSFailsafe, speedup=8),
             self.SDCardWPTest,
             self.NoArmWithoutMissionItems,
+            self.RudderArmedTakeoffRequiresNeutralThrottle,
             self.MODE_SWITCH_RESET,
             self.ExternalPositionEstimate,
             self.SagetechMXS,
@@ -7469,6 +7501,7 @@ class AutoTestPlane(vehicle_test_suite.TestSuite):
             self.DO_CHANGE_ALTITUDE,
             self.SET_POSITION_TARGET_GLOBAL_INT_for_altitude,
             self.MAV_CMD_NAV_LOITER_TURNS_zero_turn,
+            self.RudderArmingWithArmingChecksZero,
         ]
 
     def disabled_tests(self):

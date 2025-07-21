@@ -535,7 +535,7 @@ void ModeAuto::circle_movetoedge_start(const Location &circle_center, float radi
         }
 
         // if we are outside the circle, point at the edge, otherwise hold yaw
-        const float dist_to_center = get_horizontal_distance_cm(pos_control->get_pos_estimate_NEU_cm().xy().tofloat(), copter.circle_nav->get_center_NEU_cm().xy().tofloat());
+        const float dist_to_center = get_horizontal_distance(pos_control->get_pos_estimate_NEU_cm().xy().tofloat(), copter.circle_nav->get_center_NEU_cm().xy().tofloat());
         // initialise yaw
         // To-Do: reset the yaw only when the previous navigation command is not a WP.  this would allow removing the special check for ROI
         if (auto_yaw.mode() != AutoYaw::Mode::ROI) {
@@ -647,21 +647,21 @@ bool ModeAuto::use_pilot_yaw(void) const
     return allow_yaw_option || rtl_allow_yaw || landing;
 }
 
-bool ModeAuto::set_speed_xy(float speed_xy_cms)
+bool ModeAuto::set_speed_xy_cms(float speed_xy_cms)
 {
     copter.wp_nav->set_speed_NE_cms(speed_xy_cms);
     desired_speed_override.xy = speed_xy_cms * 0.01;
     return true;
 }
 
-bool ModeAuto::set_speed_up(float speed_up_cms)
+bool ModeAuto::set_speed_up_cms(float speed_up_cms)
 {
     copter.wp_nav->set_speed_up_cms(speed_up_cms);
     desired_speed_override.up = speed_up_cms * 0.01;
     return true;
 }
 
-bool ModeAuto::set_speed_down(float speed_down_cms)
+bool ModeAuto::set_speed_down_cms(float speed_down_cms)
 {
     copter.wp_nav->set_speed_down_cms(speed_down_cms);
     desired_speed_override.down = speed_down_cms * 0.01;
@@ -865,15 +865,15 @@ float ModeAuto::wp_distance_m() const
     }
 }
 
-int32_t ModeAuto::wp_bearing() const
+float ModeAuto::wp_bearing_deg() const
 {
     switch (_mode) {
     case SubMode::CIRCLE:
-        return copter.circle_nav->get_bearing_to_target_cd();
+        return degrees(copter.circle_nav->get_bearing_to_target_rad());
     case SubMode::WP:
     case SubMode::CIRCLE_MOVE_TO_EDGE:
     default:
-        return wp_nav->get_wp_bearing_to_destination_cd();
+        return degrees(wp_nav->get_wp_bearing_to_destination_rad());
     }
 }
 
@@ -1930,9 +1930,9 @@ void ModeAuto::do_within_distance(const AP_Mission::Mission_Command& cmd)
 
 void ModeAuto::do_yaw(const AP_Mission::Mission_Command& cmd)
 {
-    auto_yaw.set_fixed_yaw(
-        cmd.content.yaw.angle_deg,
-        cmd.content.yaw.turn_rate_dps,
+    auto_yaw.set_fixed_yaw_rad(
+        radians(cmd.content.yaw.angle_deg),
+        radians(cmd.content.yaw.turn_rate_dps),
         cmd.content.yaw.direction,
         cmd.content.yaw.relative_angle > 0);
 }
